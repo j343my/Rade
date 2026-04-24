@@ -60,7 +60,7 @@ export async function generateAll(opts) {
   if (tools.has('claude'))      await generateClaude(targetPath, allRules, skills);
   if (tools.has('agents-md'))   await generateAgentsMd(targetPath, allRules, skills);
   if (tools.has('cursor') || tools.has('agents-md')) await generateCursorrules(targetPath);
-  if (tools.has('antigravity')) await generateAntigravity(targetPath, rulesDir, skillsDir);
+  if (tools.has('antigravity')) await generateAntigravity(targetPath, allRules, rulesDir, skillsDir);
 }
 
 /**
@@ -262,22 +262,25 @@ async function generateCursorrules(targetPath) {
 
 /**
  * Generate .agents/ directory with native rules and skills for Antigravity.
+ * Uses allRules (built-in + global + project, already filtered) so imported
+ * rules are exposed alongside built-in ones.
  */
-async function generateAntigravity(targetPath, rulesDir, skillsDir) {
+async function generateAntigravity(targetPath, allRules, rulesDir, skillsDir) {
   const agRules = path.join(targetPath, '.agents', 'rules');
   const agSkills = path.join(targetPath, '.agents', 'skills');
   await ensureDir(agRules);
   await ensureDir(agSkills);
 
-  // Copy rules
-  const ruleFiles = await listFiles(rulesDir, { extensions: ['.md', '.mdc'], recursive: true });
-  for (const file of ruleFiles) {
-    const name = path.basename(file);
-    if (name.endsWith('.template')) continue;
-    await copyFile(file, path.join(agRules, name));
+  // Write all rules (built-in + global + project imports) into .agents/rules/
+  for (const rule of allRules) {
+    const dest = path.join(agRules, rule.name);
+    const fm = rule.frontmatter.description
+      ? `---\ndescription: "${rule.frontmatter.description}"\n${rule.frontmatter.globs ? `globs: "${rule.frontmatter.globs}"\n` : ''}---\n\n`
+      : '';
+    await writeText(dest, fm + rule.body);
   }
 
-  // Copy context template
+  // Always keep the project context template
   const templatePath = path.join(rulesDir, '00-project-context.md.template');
   try {
     await copyFile(templatePath, path.join(agRules, '00-project-context.md.template'));
@@ -291,5 +294,5 @@ async function generateAntigravity(targetPath, rulesDir, skillsDir) {
     await copyFile(file, path.join(agSkills, path.basename(file)));
   }
 
-  log.ok('Antigravity: installed in .agents/{rules,skills}/');
+  log.ok(`Antigravity: installed ${allRules.length} rule(s) in .agents/{rules,skills}/`);
 }
