@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Lint & Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: [20, 22]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+        continue-on-error: true  # lint warnings don't block merge — remove this line to make lint required
+
+      - run: npm test
