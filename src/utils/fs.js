@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 
@@ -17,7 +16,7 @@ export async function ensureDir(dirPath) {
  */
 export async function exists(p) {
   try {
-    await fsp.access(p);
+    await fsp.lstat(p);
     return true;
   } catch {
     return false;
