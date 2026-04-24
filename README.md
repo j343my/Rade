@@ -2,9 +2,9 @@
   <img src="assets/rade.png" alt="rade-cli" width="180" />
 </p>
 
-# rade-cli
+# Rade
 
-**Infrastructure for AI agents. Attach rade-cli to any project.**
+**Infrastructure for AI agents. Attach Rade to any project.**
 
 [![npm version](https://img.shields.io/npm/v/rade-cli)](https://www.npmjs.com/package/rade-cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -12,11 +12,11 @@
 
 ---
 
-## Why rade-cli?
+## Why Rade?
 
 AI coding agents are powerful, but without shared conventions they produce inconsistent, hard-to-maintain code. Every new project reinvents the same guardrails from scratch.
 
-**rade-cli solves this.** Define your skills and rules once in a central repo. Run `rade-cli attach` to generate the config files your agent tools expect. Standards stay versioned, auditable, and shared across your team.
+**Rade solves this.** Define your skills and rules once in a central repo. Run `rade-cli attach` to generate the config files your agent tools expect. Standards stay versioned, auditable, and shared across your team.
 
 ## Features
 
