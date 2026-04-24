@@ -13,21 +13,16 @@ jobs:
   publish:
     name: Publish ${{ github.ref_name }}
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
-          cache: npm
-          registry-url: https://registry.npmjs.org
-
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
       - run: npm ci
-
       - run: npm test
-
-      - run: npm publish --provenance --access public
+      - run: npm publish
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
