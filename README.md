@@ -1,6 +1,10 @@
-# Rade
+<p align="center">
+  <img src="assets/rade.png" alt="rade-cli" width="180" />
+</p>
 
-**Infrastructure for AI agents. Attach Rade to any project.**
+# rade-cli
+
+**Infrastructure for AI agents. Attach rade-cli to any project.**
 
 [![npm version](https://img.shields.io/npm/v/rade-cli)](https://www.npmjs.com/package/rade-cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -8,11 +12,11 @@
 
 ---
 
-## Why Rade?
+## Why rade-cli?
 
 AI coding agents are powerful, but without shared conventions they produce inconsistent, hard-to-maintain code. Every new project reinvents the same guardrails from scratch.
 
-**Rade solves this.** Define your skills and rules once in a central repo. Run `rade attach` to generate the config files your agent tools expect. Standards stay versioned, auditable, and shared across your team.
+**rade-cli solves this.** Define your skills and rules once in a central repo. Run `rade-cli attach` to generate the config files your agent tools expect. Standards stay versioned, auditable, and shared across your team.
 
 ## Features
 
@@ -34,7 +38,7 @@ npm install -g rade-cli
 
 ```bash
 cd my-project
-rade attach .
+rade-cli attach .
 ```
 
 ### Or run without installing
@@ -46,9 +50,9 @@ npx rade-cli attach .
 ### Target specific tools only
 
 ```bash
-rade attach . --tool cursor
-rade attach . --tool cursor,claude
-rade attach . --tool antigravity
+rade-cli attach . --tool cursor
+rade-cli attach . --tool cursor,claude
+rade-cli attach . --tool antigravity
 ```
 
 Available tools: `cursor`, `claude`, `antigravity`, `agents-md` (default: all)
@@ -79,12 +83,14 @@ Available tools: `cursor`, `claude`, `antigravity`, `agents-md` (default: all)
 
 | Command | Description |
 |---------|-------------|
-| `rade attach [path]` | Attach Rade to a project — generates all configs |
-| `rade sync` | Check for rule updates and apply them |
-| `rade check` | Show what has changed without modifying anything |
-| `rade update` | Pull latest rules and regenerate all configs |
-| `rade import <source>` | Import a rule from a URL, GitHub repo, or local file |
-| `rade detach` | Remove Rade from the current project |
+| `rade-cli attach [path]` | Attach rade-cli to a project — generates all configs |
+| `rade-cli sync` | Check for rule updates and apply them |
+| `rade-cli check` | Show what has changed without modifying anything |
+| `rade-cli update` | Pull latest rules and regenerate all configs |
+| `rade-cli import <source>` | Import a rule from a URL, GitHub repo, or local file |
+| `rade-cli list` | List all active rules (built-in, global, project) |
+| `rade-cli remove <rule>` | Remove or exclude a rule |
+| `rade-cli detach` | Remove rade-cli from the current project |
 
 ### What gets generated
 
@@ -107,12 +113,12 @@ Available tools: `cursor`, `claude`, `antigravity`, `agents-md` (default: all)
    - ...
    ```
 2. Open a PR — see [CONTRIBUTING.md](CONTRIBUTING.md).
-3. After merging, users get the new rule on the next `rade sync`.
+3. After merging, users get the new rule on the next `rade-cli sync`.
 
 ## Repository Structure
 
 ```
-rade/
+rade-cli/
 ├── README.md
 ├── LICENSE
 ├── CONTRIBUTING.md
@@ -120,15 +126,15 @@ rade/
 ├── ROADMAP.md
 ├── package.json
 ├── bin/
-│   └── rade.js               # CLI entry point
+│   └── rade.js
 ├── src/
-│   ├── index.js              # command registration
-│   ├── cli/                  # attach, sync, check, update, import, detach
+│   ├── index.js
+│   ├── cli/                  # attach, sync, check, update, import, list, remove, detach
 │   ├── core/                 # parser, generator, importer, syncer, backup, config
-│   └── utils/                # fs, log, prompt helpers
+│   └── utils/                # fs, log, prompt, paths
 ├── skills/
-│   ├── developer.yaml        # polyglot developer skill
-│   └── tester.yaml           # polyglot tester skill
+│   ├── developer.yaml
+│   └── tester.yaml
 ├── rules/
 │   ├── 00-project-context.md.template
 │   ├── go.md
@@ -138,9 +144,8 @@ rade/
 │   ├── typescript-react.md
 │   ├── frontend-vanilla.md
 │   └── xml.md
-├── imports/                  # externally imported rules
-├── examples/
-│   └── README.md
+├── imports/
+├── test/
 └── docs/
     └── ARCHITECTURE.md
 ```
@@ -148,14 +153,13 @@ rade/
 ## Testing Locally
 
 ```bash
-git clone https://github.com/your-org/rade.git
-cd rade
+git clone https://github.com/your-org/rade-cli.git
+cd rade-cli
 npm install
-npm link        # installs the "rade" binary globally from source
+npm link
 
-# In any other project:
 cd ~/my-project
-rade attach .
+rade-cli attach .
 ```
 
 ## Contributing

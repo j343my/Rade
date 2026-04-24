@@ -1,4 +1,4 @@
-# Contributing to Rade
+# Contributing to rade-cli
 
 Thanks for contributing! This doc explains how to submit changes and add new rules.
 
@@ -25,7 +25,7 @@ Thanks for contributing! This doc explains how to submit changes and add new rul
 - [ ] Markdown renders correctly
 - [ ] YAML is valid (`yamllint skills/`)
 - [ ] `npm test` passes
-- [ ] `npm link && rade attach /tmp/test-project` runs without errors
+- [ ] `npm link && rade-cli attach /tmp/test-project` runs without errors
 - [ ] No broken links in docs
 - [ ] `CHANGELOG.md` updated if user-facing
 
@@ -65,7 +65,7 @@ Test your changes:
 ```bash
 npm link
 mkdir /tmp/test-project && cd /tmp/test-project
-rade attach .
+rade-cli attach .
 # inspect .cursor/rules/, AGENTS.md, CLAUDE.md
 ```
 
@@ -73,9 +73,9 @@ rade attach .
 
 ```bash
 npm install
-npm test            # run the test suite
-npm link            # install rade globally from source
-rade attach /tmp/test-project
+npm test                          # run the test suite
+npm link                          # install rade-cli globally from source
+rade-cli attach /tmp/test-project
 ```
 
 ## Code Style
