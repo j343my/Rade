@@ -17,7 +17,6 @@ build/
 dist/
 
 # Go
-bin/
 pkg/
 vendor/
 
