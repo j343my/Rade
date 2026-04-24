@@ -1,0 +1,27 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+build/
+dist/
+
+# Go
+bin/
+pkg/
+vendor/
+
+# OS specific
+.DS_Store
+Thumbs.db
+rules/imported

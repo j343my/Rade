@@ -1,0 +1,65 @@
+# Project Context
+
+> This file is loaded by all agent skills before any work begins.
+> Replace the `{{...}}` placeholders with your project details.
+
+## Overview
+
+**Project:** {{PROJECT_NAME}}
+
+<!-- Brief description of the project and its goals -->
+
+## Tech Stack
+
+{{STACK}}
+
+- Language(s):
+- Framework(s):
+- Database:
+- Frontend:
+
+## Team
+
+{{TEAM}}
+
+- Team size:
+- Code review process:
+- Communication channels:
+
+## Architecture
+
+<!-- Describe the project structure and key directories -->
+```
+project/
+├── src/        # or cmd/, internal/, etc.
+├── tests/
+├── configs/
+└── scripts/
+```
+
+## Key Constraints
+
+{{CONSTRAINTS}}
+
+<!-- Important constraints agents must respect -->
+-
+-
+
+## Dependencies
+
+<!-- List major libraries, tools, or services -->
+-
+
+## Deployment
+
+<!-- How the project is built, deployed, and run -->
+- Build:
+- Deploy:
+- Target environment:
+
+## Conventions
+
+<!-- Any project-specific conventions not covered by per-tech rules -->
+- Git branch naming:
+- Commit message format:
+- PR guidelines:
