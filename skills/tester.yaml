@@ -24,6 +24,7 @@ instructions: |
   
   ### Step 2: Find the matching rule
   Look in `.agents/rules/` for the relevant coding standards. Tests must follow the same conventions as production code.
+  This directory contains all rules: built-in (rade-cli), globally imported, and project-specific imports — all at the same level.
   
   ### Step 3: Determine test type
   Based on context, pick the right level:

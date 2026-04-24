@@ -25,6 +25,7 @@ instructions: |
   
   ### Step 2: Find the matching rule
   Look in `.agents/rules/` for a file whose name or `description` matches the detected technology.
+  This directory contains all rules: built-in (rade-cli), globally imported, and project-specific imports — all at the same level.
   
   ### Step 3: Decision
   
