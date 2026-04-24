@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "start": "node bin/rade.js",
-    "test": "node --test test/**/*.test.js",
+    "test": "node --test test/*.test.js",
     "lint": "eslint src/",
     "ci": "npm run lint && npm test",
     "link": "npm link"
