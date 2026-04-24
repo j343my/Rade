@@ -2,9 +2,9 @@
 
 **Infrastructure for AI agents. Attach Rade to any project.**
 
-[![npm version](https://img.shields.io/npm/v/rade)](https://www.npmjs.com/package/rade)
+[![npm version](https://img.shields.io/npm/v/rade-cli)](https://www.npmjs.com/package/rade-cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![npm downloads](https://img.shields.io/npm/dm/rade)](https://www.npmjs.com/package/rade)
+[![npm downloads](https://img.shields.io/npm/dm/rade-cli)](https://www.npmjs.com/package/rade-cli)
 
 ---
 
@@ -24,17 +24,34 @@ AI coding agents are powerful, but without shared conventions they produce incon
 
 ## Quick Start
 
+### Install globally
+
 ```bash
-npm install -g rade
+npm install -g rade-cli
+```
+
+### Attach to a project
+
+```bash
 cd my-project
 rade attach .
 ```
 
-Or without installing:
+### Or run without installing
 
 ```bash
-npx rade attach .
+npx rade-cli attach .
 ```
+
+### Target specific tools only
+
+```bash
+rade attach . --tool cursor
+rade attach . --tool cursor,claude
+rade attach . --tool antigravity
+```
+
+Available tools: `cursor`, `claude`, `antigravity`, `agents-md` (default: all)
 
 ## Supported Tools
 
@@ -134,7 +151,7 @@ rade/
 git clone https://github.com/your-org/rade.git
 cd rade
 npm install
-npm link
+npm link        # installs the "rade" binary globally from source
 
 # In any other project:
 cd ~/my-project

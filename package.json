@@ -1,5 +1,5 @@
 {
-  "name": "rade",
+  "name": "rade-cli",
   "version": "1.0.0",
   "description": "Infrastructure for AI agents. Attach Rade to any project.",
   "type": "module",
