@@ -50,7 +50,7 @@ describe('generateAll', () => {
   });
 
   it('generates AGENTS.md with skills and rules', async () => {
-    const { generateAll } = await import('./generator.js');
+    const { generateAll } = await import('../src/core/generator.js');
     await generateAll({ radeRoot, targetPath });
 
     const agentsMd = await fsp.readFile(path.join(targetPath, 'AGENTS.md'), 'utf-8');

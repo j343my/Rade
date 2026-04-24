@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseRuleContent, parseSkillContent } from './parser.js';
+import { parseRuleContent, parseSkillContent } from '../src/core/parser.js';
 
 describe('parseRuleContent', () => {
   it('parses frontmatter and body', () => {

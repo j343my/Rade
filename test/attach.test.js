@@ -17,7 +17,7 @@ async function readConfig(projectPath) {
 
 describe('config helpers (unit)', () => {
   it('createConfig returns required fields', async () => {
-    const { createConfig } = await import('../core/config.js');
+    const { createConfig } = await import('../src/core/config.js');
     const cfg = createConfig({ radeVersion: '1.0.0', rulesVersion: 'abc123' });
 
     assert.equal(cfg.version, '1.0.0');
@@ -30,7 +30,7 @@ describe('config helpers (unit)', () => {
   });
 
   it('hasConfig returns false for a fresh directory', async () => {
-    const { hasConfig } = await import('../core/config.js');
+    const { hasConfig } = await import('../src/core/config.js');
     const dir = await makeTempProject();
     try {
       const result = await hasConfig(dir);
@@ -41,7 +41,7 @@ describe('config helpers (unit)', () => {
   });
 
   it('writeConfig + readConfig round-trip', async () => {
-    const { createConfig, writeConfig, readConfig: readCfg } = await import('../core/config.js');
+    const { createConfig, writeConfig, readConfig: readCfg } = await import('../src/core/config.js');
     const dir = await makeTempProject();
     try {
       const cfg = createConfig({ radeVersion: '1.2.3' });
@@ -55,7 +55,7 @@ describe('config helpers (unit)', () => {
   });
 
   it('readConfig throws when no config exists', async () => {
-    const { readConfig: readCfg } = await import('../core/config.js');
+    const { readConfig: readCfg } = await import('../src/core/config.js');
     const dir = await makeTempProject();
     try {
       await assert.rejects(
@@ -80,13 +80,13 @@ describe('gitignore helper (unit)', () => {
 
 describe('backup helper (unit)', () => {
   it('returns null when directory does not exist', async () => {
-    const { backupDirectory } = await import('../core/backup.js');
+    const { backupDirectory } = await import('../src/core/backup.js');
     const result = await backupDirectory('/tmp/nonexistent-rade-test-dir-xyz');
     assert.equal(result, null);
   });
 
   it('creates a tar.gz backup of an existing directory', async () => {
-    const { backupDirectory } = await import('../core/backup.js');
+    const { backupDirectory } = await import('../src/core/backup.js');
     const dir = await fsp.mkdtemp(path.join(os.tmpdir(), 'rade-backup-src-'));
     const outDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'rade-backup-out-'));
 
