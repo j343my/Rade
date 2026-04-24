@@ -20,6 +20,7 @@
     "start": "node bin/rade.js",
     "test": "node --test src/**/*.test.js",
     "lint": "eslint src/",
+    "ci": "npm run lint && npm test",
     "link": "npm link"
   },
   "keywords": [

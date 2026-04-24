@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { readConfig, writeConfig } from '../core/config.js';
-import { generateAll } from '../core/generator.js';
+import { generateAll, parseTools } from '../core/generator.js';
 import { RADE_ROOT } from '../index.js';
 import { copyDir } from '../utils/fs.js';
 import * as log from '../utils/log.js';
@@ -44,14 +44,12 @@ async function updateProject(targetPath) {
   await copyDir(skillsSource, agSkills);
   log.ok('Updated skills from Rade source');
 
-  // Regenerate configs
-  await generateAll({ radeRoot: RADE_ROOT, targetPath });
-
-  // Update config
+  // Regenerate configs using the tools saved in config
   const config = await readConfig(targetPath);
-  config.last_synced = new Date().toISOString();
-  config.rules_version = 'local';
-  await writeConfig(targetPath, config);
+  const tools = parseTools(config.tools);
+  await generateAll({ radeRoot: RADE_ROOT, targetPath, tools });
+  const updated = { ...config, last_synced: new Date().toISOString(), rules_version: 'local' };
+  await writeConfig(targetPath, updated);
 
   log.blank();
   log.ok('Update complete. All configs regenerated. 🚀');

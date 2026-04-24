@@ -3,7 +3,7 @@ import fsp from 'node:fs/promises';
 import { RADE_ROOT } from '../index.js';
 import { hasConfig, createConfig, writeConfig } from '../core/config.js';
 import { backupDirectory } from '../core/backup.js';
-import { generateAll } from '../core/generator.js';
+import { generateAll, parseTools, ALL_TOOLS } from '../core/generator.js';
 import { exists, ensureDir, copyDir, writeText, readText } from '../utils/fs.js';
 import * as log from '../utils/log.js';
 import * as prompt from '../utils/prompt.js';
@@ -36,11 +36,16 @@ export function registerAttach(program) {
   program
     .command('attach')
     .argument('[path]', 'target project path', '.')
+    .option(
+      '--tool <tools>',
+      `comma-separated tools to generate: ${ALL_TOOLS.join(', ')} (default: all)`
+    )
     .description('Attach Rade to a project — generate agent configs')
-    .action(async (targetArg) => {
+    .action(async (targetArg, opts) => {
       try {
         const targetPath = path.resolve(targetArg);
-        await attachProject(targetPath);
+        const tools = parseTools(opts.tool);
+        await attachProject(targetPath, tools);
       } catch (error) {
         log.err(error.message);
         process.exit(1);
@@ -50,9 +55,10 @@ export function registerAttach(program) {
 
 /**
  * Full attach workflow.
- * @param {string} targetPath
+ * @param {string}   targetPath
+ * @param {Set<string>} tools
  */
-async function attachProject(targetPath) {
+async function attachProject(targetPath, tools) {
   // Verify target exists
   try {
     await fsp.access(targetPath);
@@ -111,6 +117,7 @@ async function attachProject(targetPath) {
   const config = createConfig({
     radeVersion: pkg.version,
     rulesVersion: 'local',
+    tools: [...tools],
   });
 
   await writeConfig(targetPath, config);
@@ -140,7 +147,7 @@ async function attachProject(targetPath) {
   }
 
   // Step 6: Generate multi-tool configs
-  await generateAll({ radeRoot: RADE_ROOT, targetPath });
+  await generateAll({ radeRoot: RADE_ROOT, targetPath, tools });
 
   // Step 7: Update .gitignore
   await updateGitignore(targetPath);
@@ -153,10 +160,11 @@ async function attachProject(targetPath) {
   log.info('  .rade/config.json      — Rade configuration');
   log.info('  .agents/rules/         — coding standards per tech');
   log.info('  .agents/skills/        — agent skill definitions');
-  log.info('  .cursor/rules/*.mdc    — Cursor rules');
-  log.info('  AGENTS.md              — bundled rules');
-  log.info('  CLAUDE.md              — Claude Code config');
-  log.info('  .cursorrules           — symlink to AGENTS.md');
+  if (tools.has('cursor'))      log.info('  .cursor/rules/*.mdc    — Cursor rules');
+  if (tools.has('agents-md'))   log.info('  AGENTS.md              — bundled rules');
+  if (tools.has('claude'))      log.info('  CLAUDE.md              — Claude Code config');
+  if (tools.has('cursor') || tools.has('agents-md')) log.info('  .cursorrules           — symlink to AGENTS.md');
+  if (tools.has('antigravity')) log.info('  .agents/{rules,skills} — Antigravity native files');
   log.blank();
   log.info('Next steps:');
   log.info('  1. Edit .agents/rules/00-project-context.md.template');

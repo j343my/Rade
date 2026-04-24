@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { computeDiff, displayDiff } from '../core/syncer.js';
-import { readConfig, writeConfig } from '../core/config.js';
-import { generateAll } from '../core/generator.js';
+import { writeConfig } from '../core/config.js';
+import { generateAll, parseTools } from '../core/generator.js';
 import { RADE_ROOT } from '../index.js';
 import { copyDir } from '../utils/fs.js';
 import * as log from '../utils/log.js';
@@ -57,8 +57,9 @@ async function syncProject(targetPath) {
   const agRules = path.join(targetPath, '.agents', 'rules');
   await copyDir(rulesSource, agRules, { exclude: ['imported'] });
 
-  // Regenerate configs
-  await generateAll({ radeRoot: RADE_ROOT, targetPath });
+  // Regenerate configs using the tools saved in config
+  const tools = parseTools(diff.config.tools);
+  await generateAll({ radeRoot: RADE_ROOT, targetPath, tools });
 
   // Update config
   const config = diff.config;

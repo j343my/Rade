@@ -4,14 +4,38 @@ import { parseRule, parseSkill } from './parser.js';
 import { ensureDir, listFiles, writeText, copyFile, copyDir } from '../utils/fs.js';
 import * as log from '../utils/log.js';
 
+export const ALL_TOOLS = ['cursor', 'claude', 'antigravity', 'agents-md'];
+
 /**
- * Generate all tool-specific config files for a target project.
+ * Parse a comma-separated tool list into a validated Set.
+ * Returns all tools if input is falsy.
+ * @param {string|string[]|null|undefined} input
+ * @returns {Set<string>}
+ */
+export function parseTools(input) {
+  if (!input || (Array.isArray(input) && input.length === 0)) {
+    return new Set(ALL_TOOLS);
+  }
+  const raw = Array.isArray(input) ? input.join(',') : input;
+  const requested = raw.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+  const invalid = requested.filter(t => !ALL_TOOLS.includes(t));
+  if (invalid.length > 0) {
+    throw new Error(`Unknown tool(s): ${invalid.join(', ')}. Valid options: ${ALL_TOOLS.join(', ')}`);
+  }
+  return new Set(requested);
+}
+
+/**
+ * Generate tool-specific config files for a target project.
  * @param {object} opts
- * @param {string} opts.radeRoot   - Rade source root
- * @param {string} opts.targetPath - target project path
+ * @param {string}   opts.radeRoot   - Rade source root
+ * @param {string}   opts.targetPath - target project path
+ * @param {Set<string>} [opts.tools] - which tools to generate (default: all)
  */
 export async function generateAll(opts) {
   const { radeRoot, targetPath } = opts;
+  const tools = opts.tools instanceof Set ? opts.tools : parseTools(opts.tools);
+
   const rulesDir = path.join(radeRoot, 'rules');
   const skillsDir = path.join(radeRoot, 'skills');
 
@@ -23,11 +47,11 @@ export async function generateAll(opts) {
   const importedRules = await loadRules(importsDir);
   const allRules = [...rules, ...importedRules];
 
-  await generateCursor(targetPath, allRules, skills, rulesDir);
-  await generateClaude(targetPath, allRules, skills);
-  await generateAgentsMd(targetPath, allRules, skills);
-  await generateCursorrules(targetPath);
-  await generateAntigravity(targetPath, rulesDir, skillsDir);
+  if (tools.has('cursor'))      await generateCursor(targetPath, allRules, skills, rulesDir);
+  if (tools.has('claude'))      await generateClaude(targetPath, allRules, skills);
+  if (tools.has('agents-md'))   await generateAgentsMd(targetPath, allRules, skills);
+  if (tools.has('cursor') || tools.has('agents-md')) await generateCursorrules(targetPath);
+  if (tools.has('antigravity')) await generateAntigravity(targetPath, rulesDir, skillsDir);
 }
 
 /**

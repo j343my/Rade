@@ -46,8 +46,9 @@ export async function writeConfig(projectPath, config) {
 /**
  * Create a fresh config object.
  * @param {object} opts
- * @param {string} opts.radeVersion - CLI version
- * @param {string} [opts.rulesVersion] - commit hash or version
+ * @param {string}   opts.radeVersion  - CLI version
+ * @param {string}   [opts.rulesVersion] - commit hash or version
+ * @param {string[]} [opts.tools]      - enabled tools (default: all)
  * @returns {object}
  */
 export function createConfig(opts = {}) {
@@ -59,6 +60,7 @@ export function createConfig(opts = {}) {
     last_synced: now,
     rules_origin: 'rade',
     rules_version: opts.rulesVersion || 'local',
+    tools: opts.tools || null,
     custom_rules: [],
     excluded_rules: [],
     overrides: {},
