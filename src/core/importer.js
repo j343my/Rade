@@ -1,42 +1,32 @@
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import fsp from 'node:fs/promises';
 import { ensureDir, exists, readText, writeText, listFiles } from '../utils/fs.js';
 import * as log from '../utils/log.js';
 
-// Heuristic: map file extensions to technology names and globs
 const TECH_MAP = {
-  '.go': { tech: 'Go', globs: '*.go' },
-  '.rs': { tech: 'Rust', globs: '*.rs' },
-  '.py': { tech: 'Python', globs: '*.py' },
-  '.ts': { tech: 'TypeScript', globs: '*.ts, *.tsx' },
-  '.tsx': { tech: 'TypeScript/React', globs: '*.ts, *.tsx, *.jsx' },
-  '.js': { tech: 'JavaScript', globs: '*.js' },
-  '.jsx': { tech: 'JavaScript/React', globs: '*.jsx' },
-  '.sh': { tech: 'Bash', globs: '*.sh' },
-  '.sql': { tech: 'SQL', globs: '*.sql' },
-  '.yaml': { tech: 'YAML', globs: '*.yaml, *.yml' },
-  '.yml': { tech: 'YAML', globs: '*.yaml, *.yml' },
-  '.xml': { tech: 'XML', globs: '*.xml' },
-  '.html': { tech: 'HTML', globs: '*.html' },
-  '.css': { tech: 'CSS', globs: '*.css' },
-  '.rb': { tech: 'Ruby', globs: '*.rb' },
-  '.java': { tech: 'Java', globs: '*.java' },
-  '.kt': { tech: 'Kotlin', globs: '*.kt' },
-  '.swift': { tech: 'Swift', globs: '*.swift' },
-  '.c': { tech: 'C', globs: '*.c, *.h' },
-  '.cpp': { tech: 'C++', globs: '*.cpp, *.hpp, *.cc' },
+  '.go':   { globs: '*.go' },
+  '.rs':   { globs: '*.rs' },
+  '.py':   { globs: '*.py' },
+  '.ts':   { globs: '*.ts, *.tsx' },
+  '.tsx':  { globs: '*.ts, *.tsx, *.jsx' },
+  '.js':   { globs: '*.js' },
+  '.jsx':  { globs: '*.jsx' },
+  '.sh':   { globs: '*.sh' },
+  '.sql':  { globs: '*.sql' },
+  '.yaml': { globs: '*.yaml, *.yml' },
+  '.yml':  { globs: '*.yaml, *.yml' },
+  '.xml':  { globs: '*.xml' },
+  '.html': { globs: '*.html' },
+  '.css':  { globs: '*.css' },
+  '.rb':   { globs: '*.rb' },
+  '.java': { globs: '*.java' },
+  '.kt':   { globs: '*.kt' },
+  '.swift':{ globs: '*.swift' },
+  '.c':    { globs: '*.c, *.h' },
+  '.cpp':  { globs: '*.cpp, *.hpp, *.cc' },
 };
 
-/**
- * Import rules from a source: GitHub repo URL, raw URL, or local file.
- *
- * @param {string} source - URL or local path
- * @param {object} opts
- * @param {string} [opts.output] - custom output name
- * @param {string} opts.targetDir - directory to save imported rules
- * @returns {Promise<void>}
- */
 export async function importRule(source, opts) {
   const { output, targetDir } = opts;
   await ensureDir(targetDir);
@@ -52,9 +42,6 @@ export async function importRule(source, opts) {
   }
 }
 
-/**
- * Clone a GitHub repo and extract rule files.
- */
 async function importFromGitRepo(url, targetDir) {
   const repoName = path.basename(url, '.git');
   const destDir = path.join(targetDir, repoName);
@@ -64,18 +51,23 @@ async function importFromGitRepo(url, targetDir) {
   log.info(`Cloning ${url}...`);
 
   try {
-    execSync(`git clone --depth 1 "${url}" "${tmpDir}"`, { stdio: 'pipe' });
+    // execFileSync avoids shell interpolation — no injection risk from url
+    execFileSync('git', ['clone', '--depth', '1', url, tmpDir], { stdio: 'pipe' });
 
-    // Find .md, .mdc, or .cursorrules files
-    const findCmd = `find "${tmpDir}" -maxdepth 3 -type f \\( -name "*.md" -o -name "*.mdc" -o -name ".cursorrules" \\)`;
-    const files = execSync(findCmd, { encoding: 'utf-8' }).trim().split('\n').filter(Boolean);
+    const files = await listFiles(tmpDir, { extensions: ['.md', '.mdc'], recursive: true });
 
     let count = 0;
     for (const src of files) {
       let name = path.basename(src);
-      if (name === '.cursorrules') name = 'cursorrules.md';
       if (name === 'README.md' || name === 'LICENSE.md') continue;
       await fsp.copyFile(src, path.join(destDir, name));
+      count++;
+    }
+
+    // Also grab .cursorrules if present
+    const cursorrules = path.join(tmpDir, '.cursorrules');
+    if (await exists(cursorrules)) {
+      await fsp.copyFile(cursorrules, path.join(destDir, 'cursorrules.md'));
       count++;
     }
 
@@ -88,24 +80,15 @@ async function importFromGitRepo(url, targetDir) {
   }
 }
 
-/**
- * Fetch a single rule from a raw URL.
- */
 async function importFromUrl(url, targetDir, outputName) {
   log.info(`Fetching ${url}...`);
 
   try {
     const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     const content = await response.text();
     const name = outputName || guessNameFromUrl(url);
-    const filePath = path.join(targetDir, `${name}.md`);
-
-    const enriched = addFrontmatter(content, url);
-    await writeText(filePath, enriched);
-
+    await writeText(path.join(targetDir, `${name}.md`), addFrontmatter(content, url));
     log.ok(`Imported rule: ${name}.md`);
   } catch (error) {
     log.err(`Failed to fetch URL: ${error.message}`);
@@ -113,87 +96,56 @@ async function importFromUrl(url, targetDir, outputName) {
   }
 }
 
-/**
- * Import a local file as a rule.
- */
 async function importFromLocal(source, targetDir, outputName) {
   log.info(`Importing local file: ${source}`);
   const absSource = path.resolve(source);
 
-  if (!(await exists(absSource))) {
-    throw new Error(`File not found: ${absSource}`);
-  }
+  if (!(await exists(absSource))) throw new Error(`File not found: ${absSource}`);
 
   const content = await readText(absSource);
   const name = outputName || path.basename(absSource, path.extname(absSource));
-  const filePath = path.join(targetDir, `${name}.md`);
-
-  const enriched = addFrontmatter(content, absSource);
-  await writeText(filePath, enriched);
-
+  await writeText(path.join(targetDir, `${name}.md`), addFrontmatter(content, absSource));
   log.ok(`Imported rule: ${name}.md`);
 }
 
-/**
- * Add frontmatter to imported content if not already present.
- */
 function addFrontmatter(content, source) {
-  // Check if content already has frontmatter
-  if (content.trimStart().startsWith('---')) {
-    return content;
-  }
+  if (content.trimStart().startsWith('---')) return content;
 
   const tech = detectTech(content);
   const now = new Date().toISOString();
 
-  const fm = [
+  const lines = [
     '---',
     `description: "Imported from ${path.basename(source)}"`,
+    ...(tech ? [`globs: "${tech.globs}"`] : []),
+    `source: "${source}"`,
+    `imported_at: "${now}"`,
+    '---',
+    '',
   ];
 
-  if (tech) {
-    fm.push(`globs: "${tech.globs}"`);
-  }
-
-  fm.push(`source: "${source}"`);
-  fm.push(`imported_at: "${now}"`);
-  fm.push('---');
-  fm.push('');
-
-  return fm.join('\n') + content;
+  return lines.join('\n') + content;
 }
 
-/**
- * Simple heuristic to detect technology from content.
- */
 function detectTech(content) {
-  const lower = content.toLowerCase();
-
   const patterns = [
-    { match: /\bfunc\b.*\{|\bpackage\s+\w+/, tech: TECH_MAP['.go'] },
-    { match: /\bfn\b.*->|\blet\s+mut\b|\bimpl\b/, tech: TECH_MAP['.rs'] },
-    { match: /\bdef\b.*:|\bimport\s+\w+|\bclass\b.*:/, tech: TECH_MAP['.py'] },
-    { match: /\binterface\b|\btype\b.*=|\b:\s*string\b|\b:\s*number\b/, tech: TECH_MAP['.ts'] },
-    { match: /\buseState\b|\buseEffect\b|\bJSX\b|React/, tech: TECH_MAP['.tsx'] },
-    { match: /\bSELECT\b.*\bFROM\b|\bINSERT\b|\bCREATE TABLE\b/i, tech: TECH_MAP['.sql'] },
-    { match: /\bset -e|\bset -u|\bshellcheck\b|\bbash\b/i, tech: TECH_MAP['.sh'] },
-    { match: /\bxml\b|\bxsd\b|<\?xml/i, tech: TECH_MAP['.xml'] },
+    [/\bfunc\b.*\{|\bpackage\s+\w+/, '.go'],
+    [/\bfn\b.*->|\blet\s+mut\b|\bimpl\b/, '.rs'],
+    [/\bdef\b.*:|\bimport\s+\w+|\bclass\b.*:/, '.py'],
+    [/\buseState\b|\buseEffect\b|\bJSX\b|React/, '.tsx'],
+    [/\binterface\b|\btype\b.*=|\b:\s*string\b|\b:\s*number\b/, '.ts'],
+    [/\bSELECT\b.*\bFROM\b|\bINSERT\b|\bCREATE TABLE\b/i, '.sql'],
+    [/\bset -e|\bset -u|\bshellcheck\b|\bbash\b/i, '.sh'],
+    [/\bxml\b|\bxsd\b|<\?xml/i, '.xml'],
   ];
 
-  for (const { match, tech } of patterns) {
-    if (match.test(content)) {
-      return tech;
-    }
+  for (const [pattern, ext] of patterns) {
+    if (pattern.test(content)) return TECH_MAP[ext];
   }
-
   return null;
 }
 
-/**
- * Guess a filename from a URL.
- */
 function guessNameFromUrl(url) {
-  const segments = url.split('/').filter(Boolean);
-  const last = segments[segments.length - 1] || 'imported-rule';
+  const last = url.split('/').filter(Boolean).at(-1) || 'imported-rule';
   return last.replace(/\.(md|mdc|txt)$/, '');
 }
