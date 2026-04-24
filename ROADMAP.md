@@ -2,22 +2,41 @@
 
 Our vision: the universal standard for AI agent conventions.
 
-## v1.0 — Foundation ✅
-- [x] Repository structure and documentation
-- [x] `setup.sh` generator (Cursor, Claude Code, Antigravity, AGENTS.md)
-- [x] Multi-tool support (single, comma-separated, or all)
-- [x] Skills: Developer (polyglot, tech detection, rule loading) and Tester
-- [x] Rules with frontmatter (description + globs): Go, Bash, SQL, YAML, TypeScript/React, Frontend vanilla, XML
-- [x] Project context template
+## v1.0 — Core CLI ✅
+
+- [x] `rade attach` — attach Rade to any project, generate all configs
+- [x] `rade sync` — compare local rules with source, apply diff
+- [x] `rade check` — read-only diff view
+- [x] `rade update` — pull latest rules, regenerate configs
+- [x] `rade import` — import rules from URL, GitHub repo, or local file
+- [x] `rade detach` — cleanly remove Rade from a project
+- [x] Multi-tool output: Cursor (`.mdc`), Claude Code (`CLAUDE.md`), Antigravity (`.agents/`), AGENTS.md
+- [x] Skills: Developer (polyglot, tech detection) and Tester
+- [x] Rules: Go, Bash, SQL, YAML, TypeScript/React, Frontend vanilla, XML
+- [x] Project context template with `{{PROJECT_NAME}}` placeholders
 
 ## v1.1 — Ecosystem (planned)
-- [ ] Windsurf support in `setup.sh`
-- [ ] `rade update` command to re-sync rules when source changes
-- [ ] Rule validation / linting (`rade lint`)
-- [ ] More languages: Python, Rust, Terraform, Docker
 
-## v1.2 — Advanced (planned)
-- [ ] Skill marketplace / community registry
-- [ ] Rule inheritance (base → project-specific overrides)
-- [ ] CI integration (auto-check rules on PR)
-- [ ] Web dashboard for rule management
+- [ ] Windsurf support (`rade attach` generates `.windsurfrules`)
+- [ ] `rade lint` — validate rule frontmatter and skill YAML
+- [ ] More languages: Python, Rust, Terraform, Dockerfile
+- [ ] `rade detach` backup option (tar.gz before removing)
+
+## v1.2 — Import (planned)
+
+- [ ] `rade import awesome-cursorrules` — bulk import from awesome-cursorrules
+- [ ] `rade import --list` — browse available rules before importing
+- [ ] Auto-deduplicate imported rules against existing ones
+
+## v1.3 — Hub (planned)
+
+- [ ] Rade Hub web UI — browse and search available rules
+- [ ] Community registry for shared rules and skills
+- [ ] `rade search <keyword>` CLI command
+
+## v2.0 — Versioning (planned)
+
+- [ ] Semantic versioning for individual rules
+- [ ] Rule dependencies (`requires: [go.md]`)
+- [ ] Override system — project-local patches on top of shared rules
+- [ ] CI integration — auto-check rule drift on PR

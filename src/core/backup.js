@@ -1,5 +1,5 @@
 import path from 'node:path';
-import tar from 'tar';
+import { create as tarCreate } from 'tar';
 import { exists } from '../utils/fs.js';
 import * as log from '../utils/log.js';
 
@@ -20,7 +20,7 @@ export async function backupDirectory(dirPath, outputDir) {
   const backupFile = path.join(parentDir, `${dirName}.backup.${timestamp}.tar.gz`);
 
   try {
-    await tar.create(
+    await tarCreate(
       {
         gzip: true,
         file: backupFile,

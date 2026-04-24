@@ -11,25 +11,21 @@ Thanks for contributing! This doc explains how to submit changes and add new rul
    git checkout -b feat/add-rust-rules
    ```
 2. Make your changes.
-3. **Commit** using [Conventional Commits](https://www.conventionalcommits.org/):
+3. **Test locally** (see below).
+4. **Commit** using [Conventional Commits](https://www.conventionalcommits.org/):
    ```
    feat: add rules/rust.md
    fix: correct Go naming convention
    docs: update supported tools table
    ```
-4. **Push** and open a Pull Request against `main`.
+5. **Push** and open a Pull Request against `main`.
 
-## PR Structure
+## PR Checklist
 
-- **Clear title** (e.g., `feat: add rules/rust.md`).
-- **Description**: what changed and why.
-- **One concern per PR**. Don't mix unrelated changes.
-
-## Validation Before Commit
-
-- [ ] Markdown renders correctly (`npx markdownlint-cli .`)
+- [ ] Markdown renders correctly
 - [ ] YAML is valid (`yamllint skills/`)
-- [ ] `./setup.sh /tmp/test-project` runs without errors
+- [ ] `npm test` passes
+- [ ] `npm link && rade attach /tmp/test-project` runs without errors
 - [ ] No broken links in docs
 - [ ] `CHANGELOG.md` updated if user-facing
 
@@ -41,18 +37,18 @@ Thanks for contributing! This doc explains how to submit changes and add new rul
    description: "Technology X coding standards"
    globs: "*.ext"
    ---
-   # Technology X Coding Standards
-   - Formatting and style rules
-   - Naming conventions
-   - Error handling patterns
-   - Recommended tooling
+   # Technology X — Coding Standards
+
+   ## Category
+   - Rule 1
+   - Rule 2
    ```
 
 2. The frontmatter is **required**:
    - `description`: used by Cursor to decide when to apply the rule.
    - `globs`: file patterns that trigger the rule (e.g., `*.py`, `*.rs`).
 
-3. **No changes needed in `setup.sh`** — it reads globs/description from frontmatter automatically.
+3. No changes needed elsewhere — the generator reads globs/description from frontmatter automatically.
 
 4. Update `README.md` — add your tech to the "Languages & Technologies Covered" table.
 
@@ -62,9 +58,33 @@ Thanks for contributing! This doc explains how to submit changes and add new rul
 
 Skills live in `skills/*.yaml`. Key fields:
 - `display_name` / `short_description`: metadata.
-- `instructions`: the full agent prompt (extracted by `setup.sh`).
+- `instructions`: the full agent prompt (extracted by the generator).
+- `model` / `temperature` / `autonomy`: agent config hints.
 
-Test your changes: `./setup.sh /tmp/test --tool cursor` and inspect the generated `.mdc`.
+Test your changes:
+```bash
+npm link
+mkdir /tmp/test-project && cd /tmp/test-project
+rade attach .
+# inspect .cursor/rules/, AGENTS.md, CLAUDE.md
+```
+
+## Testing Locally
+
+```bash
+npm install
+npm test            # run the test suite
+npm link            # install rade globally from source
+rade attach /tmp/test-project
+```
+
+## Code Style
+
+- **ESM only** — `import`/`export`, no `require()`.
+- **Pure JavaScript** — no TypeScript.
+- **No comments** unless the why is non-obvious.
+- **Error handling** at every I/O boundary.
+- **English** for all user-facing messages and code comments.
 
 ## Questions?
 

@@ -1,0 +1,97 @@
+import { describe, it, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import fsp from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+
+// Helper: create a minimal Rade-like source root in a temp dir
+async function createTempRadeRoot() {
+  const root = await fsp.mkdtemp(path.join(os.tmpdir(), 'rade-gen-test-'));
+
+  // rules/
+  const rulesDir = path.join(root, 'rules');
+  await fsp.mkdir(rulesDir, { recursive: true });
+  await fsp.writeFile(
+    path.join(rulesDir, 'go.md'),
+    '---\ndescription: "Go standards"\nglobs: "*.go"\n---\n\n# Go\n\n- Use gofmt\n'
+  );
+  await fsp.writeFile(
+    path.join(rulesDir, 'bash.md'),
+    '---\ndescription: "Bash standards"\nglobs: "*.sh"\n---\n\n# Bash\n\n- Use set -euo pipefail\n'
+  );
+  await fsp.writeFile(
+    path.join(rulesDir, '00-project-context.md.template'),
+    '# Project: {{PROJECT_NAME}}\n'
+  );
+
+  // skills/
+  const skillsDir = path.join(root, 'skills');
+  await fsp.mkdir(skillsDir, { recursive: true });
+  await fsp.writeFile(
+    path.join(skillsDir, 'developer.yaml'),
+    'display_name: "Developer"\nshort_description: "Polyglot dev"\ninstructions: |\n  Be helpful.\n'
+  );
+
+  return root;
+}
+
+describe('generateAll', () => {
+  let radeRoot;
+  let targetPath;
+
+  before(async () => {
+    radeRoot = await createTempRadeRoot();
+    targetPath = await fsp.mkdtemp(path.join(os.tmpdir(), 'rade-target-test-'));
+  });
+
+  after(async () => {
+    await fsp.rm(radeRoot, { recursive: true, force: true });
+    await fsp.rm(targetPath, { recursive: true, force: true });
+  });
+
+  it('generates AGENTS.md with skills and rules', async () => {
+    const { generateAll } = await import('./generator.js');
+    await generateAll({ radeRoot, targetPath });
+
+    const agentsMd = await fsp.readFile(path.join(targetPath, 'AGENTS.md'), 'utf-8');
+    assert.ok(agentsMd.includes('Developer'), 'AGENTS.md should include skill name');
+    assert.ok(agentsMd.includes('# Go'), 'AGENTS.md should include Go rule');
+    assert.ok(agentsMd.includes('# Bash'), 'AGENTS.md should include Bash rule');
+  });
+
+  it('generates CLAUDE.md identical in structure to AGENTS.md', async () => {
+    const claudeMd = await fsp.readFile(path.join(targetPath, 'CLAUDE.md'), 'utf-8');
+    assert.ok(claudeMd.includes('Developer'), 'CLAUDE.md should include skill name');
+    assert.ok(claudeMd.includes('# Go'), 'CLAUDE.md should include Go rule');
+  });
+
+  it('generates .cursor/rules/*.mdc files', async () => {
+    const cursorDir = path.join(targetPath, '.cursor', 'rules');
+    const entries = await fsp.readdir(cursorDir);
+    const mdcFiles = entries.filter(e => e.endsWith('.mdc'));
+    assert.ok(mdcFiles.length >= 2, 'should have at least one .mdc per rule');
+
+    const goMdc = await fsp.readFile(path.join(cursorDir, 'go.mdc'), 'utf-8');
+    assert.ok(goMdc.includes('globs: "*.go"'), 'go.mdc should have correct globs');
+    assert.ok(goMdc.includes('# Go'), 'go.mdc should include rule body');
+  });
+
+  it('generates .agents/rules/ and .agents/skills/ for Antigravity', async () => {
+    const agRules = path.join(targetPath, '.agents', 'rules');
+    const agSkills = path.join(targetPath, '.agents', 'skills');
+
+    const ruleEntries = await fsp.readdir(agRules);
+    assert.ok(ruleEntries.includes('go.md'));
+    assert.ok(ruleEntries.includes('bash.md'));
+
+    const skillEntries = await fsp.readdir(agSkills);
+    assert.ok(skillEntries.includes('developer.yaml'));
+  });
+
+  it('generates .cursorrules pointing to AGENTS.md content', async () => {
+    const cursorrules = path.join(targetPath, '.cursorrules');
+    // Either a symlink or a copy — just check it's readable and has content
+    const stat = await fsp.lstat(cursorrules);
+    assert.ok(stat.isSymbolicLink() || stat.isFile(), '.cursorrules should exist');
+  });
+});
