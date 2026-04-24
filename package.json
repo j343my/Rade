@@ -33,6 +33,10 @@
     "rules",
     "coding-standards"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/j343my/Rade.git"
+  },
   "author": "Jeremy",
   "license": "MIT",
   "dependencies": {
