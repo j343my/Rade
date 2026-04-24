@@ -47,7 +47,7 @@ async function updateProject(targetPath) {
   // Regenerate configs using the tools saved in config
   const config = await readConfig(targetPath);
   const tools = parseTools(config.tools);
-  await generateAll({ radeRoot: RADE_ROOT, targetPath, tools });
+  await generateAll({ radeRoot: RADE_ROOT, targetPath, tools, excluded: config.excluded_rules });
   const updated = { ...config, last_synced: new Date().toISOString(), rules_version: 'local' };
   await writeConfig(targetPath, updated);
 

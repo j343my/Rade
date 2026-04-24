@@ -110,9 +110,9 @@ async function attachProject(targetPath, tools) {
   }
 
   // Step 3: Create .rade/config.json
-  const { createRequire } = await import('node:module');
-  const require = createRequire(import.meta.url);
-  const pkg = require('../../package.json');
+  const pkg = JSON.parse(
+    await fsp.readFile(new URL('../../package.json', import.meta.url), 'utf-8')
+  );
 
   const config = createConfig({
     radeVersion: pkg.version,
@@ -147,7 +147,7 @@ async function attachProject(targetPath, tools) {
   }
 
   // Step 6: Generate multi-tool configs
-  await generateAll({ radeRoot: RADE_ROOT, targetPath, tools });
+  await generateAll({ radeRoot: RADE_ROOT, targetPath, tools, excluded: config.excluded_rules });
 
   // Step 7: Update .gitignore
   await updateGitignore(targetPath);

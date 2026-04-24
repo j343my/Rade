@@ -1,7 +1,8 @@
 import path from 'node:path';
 import fsp from 'node:fs/promises';
 import { parseRule, parseSkill } from './parser.js';
-import { ensureDir, listFiles, writeText, copyFile, copyDir } from '../utils/fs.js';
+import { ensureDir, listFiles, writeText, copyFile } from '../utils/fs.js';
+import { USER_IMPORTS_DIR } from '../utils/paths.js';
 import * as log from '../utils/log.js';
 
 export const ALL_TOOLS = ['cursor', 'claude', 'antigravity', 'agents-md'];
@@ -28,24 +29,32 @@ export function parseTools(input) {
 /**
  * Generate tool-specific config files for a target project.
  * @param {object} opts
- * @param {string}   opts.radeRoot   - Rade source root
- * @param {string}   opts.targetPath - target project path
- * @param {Set<string>} [opts.tools] - which tools to generate (default: all)
+ * @param {string}      opts.radeRoot      - Rade source root
+ * @param {string}      opts.targetPath    - target project path
+ * @param {Set<string>} [opts.tools]       - which tools to generate (default: all)
+ * @param {string[]}    [opts.excluded]    - rule filenames to exclude
  */
 export async function generateAll(opts) {
   const { radeRoot, targetPath } = opts;
   const tools = opts.tools instanceof Set ? opts.tools : parseTools(opts.tools);
+  const excluded = new Set(opts.excluded || []);
 
   const rulesDir = path.join(radeRoot, 'rules');
   const skillsDir = path.join(radeRoot, 'skills');
 
-  const rules = await loadRules(rulesDir);
   const skills = await loadSkills(skillsDir);
 
-  // Also load rules from the project's .agents/imports/ if present
-  const importsDir = path.join(targetPath, '.agents', 'imports');
-  const importedRules = await loadRules(importsDir);
-  const allRules = [...rules, ...importedRules];
+  // Layer 1: built-in rules (rade-cli package)
+  const builtinRules = await loadRules(rulesDir);
+
+  // Layer 2: global user rules (~/.rade/imports/)
+  const globalRules = await loadRules(USER_IMPORTS_DIR);
+
+  // Layer 3: project-local imports (.agents/imports/)
+  const projectRules = await loadRules(path.join(targetPath, '.agents', 'imports'));
+
+  const allRules = [...builtinRules, ...globalRules, ...projectRules]
+    .filter(r => !excluded.has(r.name));
 
   if (tools.has('cursor'))      await generateCursor(targetPath, allRules, skills, rulesDir);
   if (tools.has('claude'))      await generateClaude(targetPath, allRules, skills);

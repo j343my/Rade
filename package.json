@@ -4,7 +4,7 @@
   "description": "Infrastructure for AI agents. Attach Rade to any project.",
   "type": "module",
   "bin": {
-    "rade": "./bin/rade.js"
+    "rade-cli": "./bin/rade.js"
   },
   "main": "./src/index.js",
   "files": [

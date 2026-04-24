@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { registerAttach } from './cli/attach.js';
@@ -8,26 +8,21 @@ import { registerCheck } from './cli/check.js';
 import { registerUpdate } from './cli/update.js';
 import { registerImport } from './cli/import.js';
 import { registerDetach } from './cli/detach.js';
+import { registerList } from './cli/list.js';
+import { registerRemove } from './cli/remove.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Resolve the Rade source root (one level up from src/)
 export const RADE_ROOT = path.resolve(__dirname, '..');
 
-// Read version from package.json
-const require = createRequire(import.meta.url);
-const pkg = require('../package.json');
+const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'));
 
-/**
- * Build and run the CLI program.
- * @param {string[]} argv - process.argv
- */
 export function run(argv) {
   const program = new Command();
 
   program
-    .name('rade')
+    .name('rade-cli')
     .description('Infrastructure for AI agents. Attach Rade to any project.')
     .version(pkg.version);
 
@@ -37,6 +32,8 @@ export function run(argv) {
   registerUpdate(program);
   registerImport(program);
   registerDetach(program);
+  registerList(program);
+  registerRemove(program);
 
   program.parse(argv);
 }

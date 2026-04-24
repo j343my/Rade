@@ -57,9 +57,9 @@ async function syncProject(targetPath) {
   const agRules = path.join(targetPath, '.agents', 'rules');
   await copyDir(rulesSource, agRules, { exclude: ['imported'] });
 
-  // Regenerate configs using the tools saved in config
+  // Regenerate configs using the tools and exclusions saved in config
   const tools = parseTools(diff.config.tools);
-  await generateAll({ radeRoot: RADE_ROOT, targetPath, tools });
+  await generateAll({ radeRoot: RADE_ROOT, targetPath, tools, excluded: diff.config.excluded_rules });
 
   // Update config
   const config = diff.config;
